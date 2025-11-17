@@ -778,12 +778,12 @@
         // Check if API key is configured
         if (!config.licenseKey) {
           addStatusMessage(currentLanguage === 'cantonese' ?
-            '需要阿里雲API密鑰。請點擊⚙️設定密鑰。' :
+            '需要NTTCA AI API密鑰。請點擊⚙️設定密鑰。' :
             currentLanguage === 'mandarin' ?
-              '需要阿里云 API 密钥。请点击⚙️进行设置。' :
+              '需要NTTCA AI API 密钥。请点击⚙️进行设置。' :
               currentLanguage === 'japanese' ?
-                'Alibaba Cloud の API キーが必要です。⚙️をクリックして設定してください。' :
-                'Alibaba Cloud API key required. Please click ⚙️ to configure.');
+                'NTTCA AI Cloud の API キーが必要です。⚙️をクリックして設定してください。' :
+                'NTTCA AI Cloud API key required. Please click ⚙️ to configure.');
           return;
         }
 
@@ -879,12 +879,12 @@
         // Check if API key is configured
         if (!config.licenseKey) {
           throw new Error(currentLanguage === 'cantonese' ?
-            '需要阿里雲API密鑰。請點擊⚙️設定密鑰。' :
+            '需要NTTCA AI API密鑰。請點擊⚙️設定密鑰。' :
             currentLanguage === 'mandarin' ?
-              '需要阿里云 API 密钥。请点击⚙️进行设置。' :
+              '需要NTTCA AI API 密钥。请点击⚙️进行设置。' :
               currentLanguage === 'japanese' ?
-                'Alibaba Cloud の API キーが必要です。⚙️をクリックして設定してください。' :
-                'Alibaba Cloud API key required. Please click ⚙️ to configure.');
+                'NTTCA AI の API キーが必要です。⚙️をクリックして設定してください。' :
+                'NTTCA AI Cloud API key required. Please click ⚙️ to configure.');
         }
 
         // Prepare API request
