@@ -276,18 +276,26 @@
         </div>
         <div class="form-group">
           <label for="minimax-voice-id">Voice ID:</label>
-          <input type="text" id="minimax-voice-id" placeholder="可選：覆寫預設Voice ID，例如 Japanese_GentleButler">
-        </div>
-        <div class="form-group">
-          <label for="voice-select">語音選項:</label>
-          <select id="voice-select">
-            <option value="zh-HK-HiuGaaiNeural">粵語 - 曉蓋 (女聲)</option>
-            <option value="zh-HK-HiuMaanNeural">粵語 - 曉曼 (女聲)</option>
-            <option value="zh-HK-WanLungNeural">粵語 - 雲龍 (男聲)</option>
-            <option value="zh-TW-Female">台灣聲調 (女聲)</option>
-            <option value="zh-CN-Female">普通話 (女聲)</option>
-            <option value="aoede-female">Aoede (Female)</option>
-            <option value="aoede-male">Aoede (Male)</option>
+          <select id="minimax-voice-id">
+            <option value="">預設 (根據語言自動選擇)</option>
+            <option value="Cantonese_PlayfulMan">粵語 PlayfulMan (男聲)</option>
+            <option value="Cantonese_WiselProfessor">粵語 WiselProfessor (男聲)</option>
+            <option value="Cantonese_KindWoman">粵語 KindWoman (女聲)<</option>
+            <option value="Cantonese_GentleLady">粵語 GentleLady (女聲)<</option>
+            <option value="English_GentleLady">GentleLady</option>
+            <option value="English_CalmWoman">CalmWoman</option>
+            <option value="conversational_female_2_v1">conversational_female</option>
+            <option value="English_Trustworth_Man">Trustworth_Man</option>
+            <option value="English_ManWithDeepVoice">ManWithDeepVoice</option>
+            <option value="Mandarin_GentleLady">普通話 GentleLady (女聲)</option>
+            <option value="Chinese (Mandarin)_Reliable_Executive">普通話 Reliable_Executive (男聲)</option>
+            <option value="Chinese (Mandarin)_News_Anchor">普通話 News_Anchor (女聲)</option>
+            <option value="Chinese (Mandarin)_Unrestrained_Young_Man">普通話 Unrestrained_Young_Man (男聲)</option>
+            <option value="hunyin_6">普通話 hunyin_6</option>
+            <option value="Chinese (Mandarin)_Soft_Girl">普通話 Soft_Girl</option>
+            <option value="Japanese_DecisivePrincess">日本語 DecisivePrincess</option>
+            <option value="Japanese_KindLady">日本語 KindLady</option> 
+            <option value="Japanese_GentleButler">日本語 GentleButler</option>
           </select>
         </div>
         <div class="form-group">
@@ -349,7 +357,6 @@
     const minimaxGroupIdInput = document.getElementById('minimax-group-id');
     const minimaxApiKeyInput = document.getElementById('minimax-api-key');
     const minimaxVoiceIdInput = document.getElementById('minimax-voice-id');
-    const voiceSelect = document.getElementById('voice-select');
     const responseTypeSelect = document.getElementById('response-type');
     const sttMethodSelect = document.getElementById('stt-method');
     const speechRateInput = document.getElementById('speech-rate');
@@ -370,7 +377,6 @@
       minimaxGroupId: '',
       minimaxApiKey: '',
       minimaxVoiceId: '',
-      voice: 'zh-HK-HiuGaaiNeural',  // Default to Cantonese female voice
       responseType: 'audio',
       sttMethod: 'web-speech',
       speechRate: 1.0,
@@ -398,7 +404,6 @@
           minimaxGroupIdInput.value = config.minimaxGroupId || '';
           minimaxApiKeyInput.value = config.minimaxApiKey || '';
           minimaxVoiceIdInput.value = config.minimaxVoiceId || '';
-          voiceSelect.value = config.voice || 'zh-HK-HiuGaaiNeural';
           responseTypeSelect.value = config.responseType || 'audio';
           sttMethodSelect.value = config.sttMethod || 'web-speech';
           speechRateInput.value = config.speechRate || 1.0;
@@ -418,7 +423,6 @@
       config.minimaxGroupId = minimaxGroupIdInput.value;
       config.minimaxApiKey = minimaxApiKeyInput.value;
       config.minimaxVoiceId = minimaxVoiceIdInput.value;
-      config.voice = voiceSelect.value;
       config.responseType = responseTypeSelect.value;
       config.sttMethod = sttMethodSelect.value;
       config.speechRate = parseFloat(speechRateInput.value) || 1.0;
@@ -467,6 +471,19 @@
 
       // Microphone button click handler
       micBtn.addEventListener('click', toggleListening);
+
+      // Voice ID dropdown change handler - keep config in sync immediately
+      minimaxVoiceIdInput.addEventListener('change', () => {
+        config.minimaxVoiceId = minimaxVoiceIdInput.value;
+        // Persist to localStorage so it survives reloads
+        try {
+          const savedConfig = localStorage.getItem('voiceBotConfig');
+          const baseConfig = savedConfig ? JSON.parse(savedConfig) : {};
+          localStorage.setItem('voiceBotConfig', JSON.stringify({ ...baseConfig, minimaxVoiceId: config.minimaxVoiceId }));
+        } catch (e) {
+          console.error('Error saving Voice ID to localStorage:', e);
+        }
+      });
 
       // Language toggle handlers
       cantoneseBtn.addEventListener('click', () => setLanguage('cantonese'));
@@ -791,7 +808,8 @@
           body: JSON.stringify({
             text: text,
             language: currentLanguage,
-            minimaxVoiceId: config.minimaxVoiceId
+            // Use the current dropdown value directly so changes apply immediately
+            minimaxVoiceId: minimaxVoiceIdInput.value
           })
         });
 

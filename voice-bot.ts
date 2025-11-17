@@ -13,17 +13,17 @@ const MINIMAX_API_KEY = Deno.env.get("MINIMAX_API_KEY") || "";
 // const MINIMAX_VOICE_ID = "Cantonese_GentleLady";
 
 // Cantonese Voice 
-// const MINIMAX_VOICE_ID = "Cantonese_PlayfulMan"
-const MINIMAX_VOICE_ID = "Cantonese_WiselProfessor"
-// const MINIMAX_VOICE_ID = "Cantonese_KindWoman"
-// const MINIMAX_VOICE_ID = "Cantonese_CuteGirl"
+// const MINIMAX_VOICE_ID = "粵語 Cantonese_PlayfulMan"
+const MINIMAX_VOICE_ID = "粵語 Cantonese_WiselProfessor"
+// const MINIMAX_VOICE_ID = "粵語 Cantonese_KindWoman"
+// const MINIMAX_VOICE_ID = "粵語 Cantonese_GentleLady";
 
 // English Voice
-// const MINIMAX_VOICE_ID = "English_GentleLady"
-// const MINIMAX_VOICE_ID = "English_CalmWoman"
-// const MINIMAX_VOICE_ID = "conversational_female_2_v1"
-// const MINIMAX_VOICE_ID = "English_Trustworth_Man"
-// const MINIMAX_VOICE_ID = "English_ManWithDeepVoice"
+// const MINIMAX_VOICE_ID = "英語 English_GentleLady"
+// const MINIMAX_VOICE_ID = "英語 English_CalmWoman"
+// const MINIMAX_VOICE_ID = "英語 conversational_female_2_v1"
+// const MINIMAX_VOICE_ID = "英語 English_Trustworth_Man"
+// const MINIMAX_VOICE_ID = "英語 English_ManWithDeepVoice"
 
 // Mandarin Voice
 // const MINIMAX_VOICE_ID = "Mandarin_GentleLady"
@@ -36,7 +36,6 @@ const MINIMAX_VOICE_ID = "Cantonese_WiselProfessor"
 // Japanese Voice
 // const MINIMAX_VOICE_ID = "Japanese_DecisivePrincess"
 // const MINIMAX_VOICE_ID = "Japanese_KindLady" 
-// const MINIMAX_VOICE_ID = "moss_audio_7f4ee608-78ea-11f0-bb73-1e2a4cfcd245n"
 // const MINIMAX_VOICE_ID = "Japanese_GentleButler"
 
 const MINIMAX_TTS_URL = `https://api.minimax.io/v1/t2a_v2?GroupId=${MINIMAX_GROUP_ID}`;
