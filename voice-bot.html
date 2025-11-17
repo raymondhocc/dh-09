@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>智能助手 / AI Assistant / AIアシスタント</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+    }
+    .chat-container {
+      height: 60vh;
+      overflow-y: auto;
+      padding: 15px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .message-container {
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+    }
+    .message {
+      padding: 10px 15px;
+      border-radius: 18px;
+      max-width: 80%;
+      word-wrap: break-word;
+    }
+    .user-container {
+      justify-content: flex-end;
+    }
+    .user {
+      background-color: #e1f5fe;
+      border-bottom-right-radius: 5px;
+      text-align: right;
+    }
+    .bot-container {
+      justify-content: flex-start;
+    }
+    .bot {
+      background-color: #f1f1f1;
+      border-bottom-left-radius: 5px;
+    }
+    .input-area {
+      display: flex;
+      gap: 10px;
+    }
+    #message-input {
+      flex-grow: 1;
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: 25px;
+      font-size: 16px;
+      outline: none;
+    }
+    button {
+      background-color: #4285f4;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      padding: 0 20px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #3367d6;
+    }
+    .speak-btn {
+      background-color: transparent;
+      color: #333;
+      font-size: 20px;
+      margin-left: 8px;
+      padding: 0 10px;
+    }
+    .language-toggle {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .toggle-btn {
+      background-color: #f1f1f1;
+      color: #333;
+      margin: 0 5px;
+      padding: 8px 15px;
+      font-size: 14px;
+    }
+    .toggle-btn.active {
+      background-color: #4285f4;
+      color: white;
+    }
+    .mic-button {
+      background-color: #4CAF50;
+      transition: background-color 0.3s;
+    }
+    .mic-button.recording {
+      background-color: #f44336;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    .mic-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: #ccc;
+      display: inline-block;
+      margin-right: 5px;
+    }
+    .mic-active {
+      background-color: #f44336;
+    }
+    .footnote {
+      text-align: center;
+      font-size: 12px;
+      color: #777;
+      margin-top: 20px;
+    }
+    .status-message {
+      color: #777;
+      font-style: italic;
+      text-align: center;
+      margin: 10px 0;
+    }
+    .error {
+      color: #d32f2f;
+      font-weight: bold;
+    }
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    /* Configuration Panel Styles */
+    .config-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .config-content {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 800px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+    .config-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .config-header h2 {
+      margin: 0;
+    }
+    .config-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #888;
+    }
+    .config-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 15px 24px;
+      align-items: flex-start;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .form-group label {
+      font-weight: bold;
+    }
+    .form-group input, .form-group select {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+    .form-group input:focus, .form-group select:focus {
+      border-color: #4285f4;
+      outline: none;
+    }
+    .config-submit {
+      margin-top: 20px;
+      padding: 12px 0;
+      background-color: #4285f4;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+    .config-submit:hover {
+      background-color: #3367d6;
+    }
+    .bandwidth-note {
+      font-size: 12px;
+      color: #888;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>智能助手 / AI Assistant / AIアシスタント</h1>
+
+  <div class="controls">
+    <div class="language-toggle">
+      <button id="cantonese-btn" class="toggle-btn active">廣東話</button>
+      <button id="english-btn" class="toggle-btn">English</button>
+      <button id="mandarin-btn" class="toggle-btn">普通話</button>
+      <button id="japanese-btn" class="toggle-btn">日本語</button>
+    </div>
+    <button id="config-btn" title="Configuration">⚙️</button>
+  </div>
+
+  <div class="chat-container" id="chat-container">
+    <div class="message-container bot-container">
+      <div class="message bot">你好！我係你嘅廣東話AI助手，有咩可以幫到你？</div>
+      <button class="speak-btn" onclick="speakMessage(this.previousElementSibling.textContent)">🔊</button>
+    </div>
+  </div>
+
+  <div class="input-area">
+    <input type="text" id="message-input" placeholder="輸入問題或開始交談...">
+    <button id="send-btn">發送</button>
+    <button id="mic-btn" class="mic-button">🎤</button>
+  </div>
+
+  <!-- Configuration Panel -->
+  <div id="config-panel" class="config-panel">
+    <div class="config-content">
+      <div class="config-header">
+        <h2>設定 | Configuration</h2>
+        <button class="config-close" onclick="closeConfigPanel()">&times;</button>
+      </div>
+      <div class="config-form">
+        <div class="form-group">
+          <label for="license-key">License Key:</label>
+          <input type="text" id="license-key" placeholder="請輸入License Key">
+        </div>
+        <div class="form-group">
+          <label for="minimax-group-id">Chat Group ID:</label>
+          <input type="text" id="minimax-group-id" placeholder="請輸入Chat Group ID">
+        </div>
+        <div class="form-group">
+          <label for="minimax-api-key">Chat API Key:</label>
+          <input type="text" id="minimax-api-key" placeholder="請輸入Chat API Key">
+        </div>
+        <div class="form-group">
+          <label for="minimax-voice-id">Voice ID:</label>
+          <input type="text" id="minimax-voice-id" placeholder="可選：覆寫預設Voice ID，例如 Japanese_GentleButler">
+        </div>
+        <div class="form-group">
+          <label for="voice-select">語音選項:</label>
+          <select id="voice-select">
+            <option value="zh-HK-HiuGaaiNeural">粵語 - 曉蓋 (女聲)</option>
+            <option value="zh-HK-HiuMaanNeural">粵語 - 曉曼 (女聲)</option>
+            <option value="zh-HK-WanLungNeural">粵語 - 雲龍 (男聲)</option>
+            <option value="zh-TW-Female">台灣聲調 (女聲)</option>
+            <option value="zh-CN-Female">普通話 (女聲)</option>
+            <option value="aoede-female">Aoede (Female)</option>
+            <option value="aoede-male">Aoede (Male)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="response-type">回應類型:</label>
+          <select id="response-type">
+            <option value="audio">語音</option>
+            <option value="text">文字</option>
+            <option value="both">語音和文字</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="stt-method">語音辨識方法:</label>
+          <select id="stt-method">
+            <option value="web-speech">瀏覽器語音辨識 (Web Speech API)</option>
+            <option value="minimax">MiniMax 語音辨識</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="speech-rate">語速:</label>
+          <div class="range-container">
+            <input type="range" id="speech-rate" min="0.5" max="1.5" step="0.1" value="1.0">
+            <span id="speech-rate-value">1.0</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="speech-pitch">音調:</label>
+          <div class="range-container">
+            <input type="range" id="speech-pitch" min="0.5" max="1.5" step="0.1" value="1.0">
+            <span id="speech-pitch-value">1.0</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="video-fps">視頻幀率:</label>
+          <input type="number" id="video-fps" value="1" min="1" max="30">
+          <div class="bandwidth-note">更高幀率需要更多網絡頻寬</div>
+        </div>
+        <button class="config-submit" onclick="saveConfiguration()">確認</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footnote">Powered by NTT Comm Asia - LLMs</div>
+
+  <script>
+    // DOM Elements
+    const chatContainer = document.getElementById('chat-container');
+    const messageInput = document.getElementById('message-input');
+    const sendBtn = document.getElementById('send-btn');
+    const micBtn = document.getElementById('mic-btn');
+    const cantoneseBtn = document.getElementById('cantonese-btn');
+    const englishBtn = document.getElementById('english-btn');
+    const mandarinBtn = document.getElementById('mandarin-btn');
+    const japaneseBtn = document.getElementById('japanese-btn');
+    const configBtn = document.getElementById('config-btn');
+    const configPanel = document.getElementById('config-panel');
+
+    // Configuration Elements
+    const licenseKeyInput = document.getElementById('license-key');
+    const minimaxGroupIdInput = document.getElementById('minimax-group-id');
+    const minimaxApiKeyInput = document.getElementById('minimax-api-key');
+    const minimaxVoiceIdInput = document.getElementById('minimax-voice-id');
+    const voiceSelect = document.getElementById('voice-select');
+    const responseTypeSelect = document.getElementById('response-type');
+    const sttMethodSelect = document.getElementById('stt-method');
+    const speechRateInput = document.getElementById('speech-rate');
+    const speechRateValue = document.getElementById('speech-rate-value');
+    const speechPitchInput = document.getElementById('speech-pitch');
+    const speechPitchValue = document.getElementById('speech-pitch-value');
+    const videoFpsInput = document.getElementById('video-fps');
+
+    // State variables
+    let currentLanguage = 'cantonese';
+    let recognition = null;
+    let mediaRecorder = null;
+    let isListening = false;
+
+    // Configuration state
+    let config = {
+      licenseKey: '',
+      minimaxGroupId: '',
+      minimaxApiKey: '',
+      minimaxVoiceId: '',
+      voice: 'zh-HK-HiuGaaiNeural',  // Default to Cantonese female voice
+      responseType: 'audio',
+      sttMethod: 'web-speech',
+      speechRate: 1.0,
+      speechPitch: 1.0,
+      videoFps: 1
+    };
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      loadConfiguration();
+      initSpeechRecognition();
+      setupEventListeners();
+    });
+
+    // Load configuration from localStorage if available
+    function loadConfiguration() {
+      const savedConfig = localStorage.getItem('voiceBotConfig');
+      if (savedConfig) {
+        try {
+          const parsedConfig = JSON.parse(savedConfig);
+          config = { ...config, ...parsedConfig };
+
+          // Apply saved configuration to form
+          licenseKeyInput.value = config.licenseKey || '';
+          minimaxGroupIdInput.value = config.minimaxGroupId || '';
+          minimaxApiKeyInput.value = config.minimaxApiKey || '';
+          minimaxVoiceIdInput.value = config.minimaxVoiceId || '';
+          voiceSelect.value = config.voice || 'zh-HK-HiuGaaiNeural';
+          responseTypeSelect.value = config.responseType || 'audio';
+          sttMethodSelect.value = config.sttMethod || 'web-speech';
+          speechRateInput.value = config.speechRate || 1.0;
+          speechRateValue.textContent = config.speechRate || 1.0;
+          speechPitchInput.value = config.speechPitch || 1.0;
+          speechPitchValue.textContent = config.speechPitch || 1.0;
+          videoFpsInput.value = config.videoFps || 1;
+        } catch (error) {
+          console.error('Error loading configuration:', error);
+        }
+      }
+    }
+
+    // Save configuration to localStorage
+    function saveConfiguration() {
+      config.licenseKey = licenseKeyInput.value;
+      config.minimaxGroupId = minimaxGroupIdInput.value;
+      config.minimaxApiKey = minimaxApiKeyInput.value;
+      config.minimaxVoiceId = minimaxVoiceIdInput.value;
+      config.voice = voiceSelect.value;
+      config.responseType = responseTypeSelect.value;
+      config.sttMethod = sttMethodSelect.value;
+      config.speechRate = parseFloat(speechRateInput.value) || 1.0;
+      config.speechPitch = parseFloat(speechPitchInput.value) || 1.0;
+      config.videoFps = parseInt(videoFpsInput.value) || 1;
+
+      localStorage.setItem('voiceBotConfig', JSON.stringify(config));
+      closeConfigPanel();
+
+      // Show configuration saved message
+      addStatusMessage(currentLanguage === 'cantonese' ?
+        '設定已保存！' :
+        currentLanguage === 'mandarin' ?
+          '设置已保存！' :
+          currentLanguage === 'japanese' ?
+            '設定が保存されました！' :
+            'Configuration saved!');
+    }
+
+    // Show configuration panel
+    function showConfigPanel() {
+      configPanel.style.display = 'flex';
+    }
+
+    // Close configuration panel
+    function closeConfigPanel() {
+      configPanel.style.display = 'none';
+    }
+
+    // Setup event listeners
+    function setupEventListeners() {
+      // Configuration button click handler
+      configBtn.addEventListener('click', showConfigPanel);
+
+      // Send button click handler
+      sendBtn.addEventListener('click', () => {
+        sendMessage();
+      });
+
+      // Enter key press in input field
+      messageInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          sendMessage();
+        }
+      });
+
+      // Microphone button click handler
+      micBtn.addEventListener('click', toggleListening);
+
+      // Language toggle handlers
+      cantoneseBtn.addEventListener('click', () => setLanguage('cantonese'));
+      englishBtn.addEventListener('click', () => setLanguage('english'));
+      mandarinBtn.addEventListener('click', () => setLanguage('mandarin'));
+      japaneseBtn.addEventListener('click', () => setLanguage('japanese'));
+
+      // Speech rate slider handler
+      speechRateInput.addEventListener('input', () => {
+        speechRateValue.textContent = speechRateInput.value;
+      });
+
+      // Speech pitch slider handler
+      speechPitchInput.addEventListener('input', () => {
+        speechPitchValue.textContent = speechPitchInput.value;
+      });
+    }
+
+    // Set the current language
+    function setLanguage(lang) {
+      currentLanguage = lang;
+
+      // Reset active state for all language buttons
+      cantoneseBtn.classList.remove('active');
+      englishBtn.classList.remove('active');
+      mandarinBtn.classList.remove('active');
+      japaneseBtn.classList.remove('active');
+
+      // Update UI and placeholders based on language
+      if (lang === 'cantonese') {
+        cantoneseBtn.classList.add('active');
+        messageInput.placeholder = '輸入問題或開始交談...';
+        sendBtn.textContent = '發送';
+      } else if (lang === 'english') {
+        englishBtn.classList.add('active');
+        messageInput.placeholder = 'Type a message or start talking...';
+        sendBtn.textContent = 'Send';
+      } else if (lang === 'mandarin') {
+        mandarinBtn.classList.add('active');
+        messageInput.placeholder = '输入问题或开始交谈...';
+        sendBtn.textContent = '发送';
+      } else if (lang === 'japanese') {
+        japaneseBtn.classList.add('active');
+        messageInput.placeholder = 'メッセージを入力するか、話し始めてください...';
+        sendBtn.textContent = '送信';
+      }
+
+      // Update speech recognition language
+      if (recognition) {
+        if (lang === 'cantonese') {
+          recognition.lang = 'zh-HK';
+        } else if (lang === 'english') {
+          recognition.lang = 'en-US';
+        } else if (lang === 'mandarin') {
+          recognition.lang = 'zh-CN';
+        } else if (lang === 'japanese') {
+          recognition.lang = 'ja-JP';
+        }
+      }
+    }
+
+    // Add a message to the chat
+    function addMessage(text, isUser = false) {
+      const container = document.createElement('div');
+      container.className = isUser ? 'message-container user-container' : 'message-container bot-container';
+
+      const messageDiv = document.createElement('div');
+      messageDiv.className = isUser ? 'message user' : 'message bot';
+      messageDiv.textContent = text;
+      container.appendChild(messageDiv);
+
+      // Add speak button for bot messages if audio responses are enabled
+      if (!isUser && (config.responseType === 'audio' || config.responseType === 'both')) {
+        const speakBtn = document.createElement('button');
+        speakBtn.className = 'speak-btn';
+        speakBtn.textContent = '🔊';
+        speakBtn.onclick = () => speakMessage(text);
+        container.appendChild(speakBtn);
+      }
+
+      chatContainer.appendChild(container);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+
+      // Auto-speak bot messages if audio responses are enabled
+      if (!isUser && (config.responseType === 'audio' || config.responseType === 'both')) {
+        speakMessage(text);
+      }
+
+      return messageDiv;
+    }
+
+    // Add a status message
+    function addStatusMessage(text) {
+      const statusDiv = document.createElement('div');
+      statusDiv.className = 'status-message';
+      statusDiv.textContent = text;
+      chatContainer.appendChild(statusDiv);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+
+      // Auto-remove status message after 5 seconds
+      setTimeout(() => {
+        try {
+          chatContainer.removeChild(statusDiv);
+        } catch (err) {
+          // Element might already be removed
+        }
+      }, 5000);
+
+      return statusDiv;
+    }
+
+    // Initialize speech recognition
+    function initSpeechRecognition() {
+      // Check if browser supports SpeechRecognition
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        addStatusMessage(currentLanguage === 'cantonese' ?
+          '你個瀏覽器唔支援語音辨識功能，請用Chrome瀏覽器。' :
+          currentLanguage === 'mandarin' ?
+            '你的浏览器不支持语音识别功能，请使用Chrome浏览器。' :
+            currentLanguage === 'japanese' ?
+              'あなたのブラウザは音声認識機能をサポートしていません。Chromeブラウザを使用してください。' :
+              'Your browser does not support speech recognition. Please use Chrome.');
+        return;
+      }
+
+      // Create speech recognition instance
+      window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new window.SpeechRecognition();
+
+      // Configure recognition
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = currentLanguage === 'cantonese' ? 'zh-HK' :
+        currentLanguage === 'english' ? 'en-US' :
+        currentLanguage === 'mandarin' ? 'zh-CN' :
+        'ja-JP';
+
+      // Handle recognition results
+      recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        messageInput.value = transcript;
+        sendMessage();
+      };
+
+      // Handle errors
+      recognition.onerror = function(event) {
+        micBtn.classList.remove('recording');
+        isListening = false;
+
+        let errorMessage = '';
+        if (event.error === 'no-speech') {
+          errorMessage = currentLanguage === 'cantonese' ?
+            '聽唔到你把聲，請再試過。' :
+            currentLanguage === 'mandarin' ?
+              '没有检测到语音，请再试一次。' :
+              currentLanguage === 'japanese' ?
+                '音声が検出されませんでした。もう一度お試しください。' :
+                'No speech detected. Please try again.';
+        } else if (event.error === 'audio-capture') {
+          errorMessage = currentLanguage === 'cantonese' ?
+            '抓唔到麥克風，麻煩檢查下你嘅裝置設定。' :
+            currentLanguage === 'mandarin' ?
+              '无法访问麦克风，请检查设备设置。' :
+              currentLanguage === 'japanese' ?
+                'マイクにアクセスできません。デバイス設定を確認してください。' :
+                'No microphone detected. Please check your device settings.';
+        } else if (event.error === 'not-allowed') {
+          errorMessage = currentLanguage === 'cantonese' ?
+            '麥克風使用權限被拒絕，請允許存取麥克風。' :
+            currentLanguage === 'mandarin' ?
+              '麦克风权限被拒绝，请允许访问麦克风。' :
+              currentLanguage === 'japanese' ?
+                'マイクの使用が拒否されました。マイクへのアクセスを許可してください。' :
+                'Microphone permission denied. Please allow access to your microphone.';
+        } else {
+          errorMessage = currentLanguage === 'cantonese' ?
+            '語音辨識錯誤：' + event.error :
+            currentLanguage === 'mandarin' ?
+              '语音识别错误：' + event.error :
+              currentLanguage === 'japanese' ?
+                '音声認識エラー：' + event.error :
+                'Speech recognition error: ' + event.error;
+        }
+
+        addStatusMessage(errorMessage);
+      };
+
+      // Handle recognition end
+      recognition.onend = function() {
+        micBtn.classList.remove('recording');
+        isListening = false;
+      };
+    }
+
+    // Toggle listening state
+    async function toggleListening() {
+      if (isListening) {
+        // Stop listening
+        if (config.sttMethod === 'web-speech' && recognition) {
+          recognition.stop();
+        } else if (config.sttMethod === 'minimax' && mediaRecorder) {
+          mediaRecorder.stop();
+        }
+        micBtn.classList.remove('recording');
+        isListening = false;
+      } else {
+        // Start listening
+        if (config.sttMethod === 'web-speech') {
+          if (!recognition) {
+            initSpeechRecognition();
+          }
+
+          try {
+            recognition.start();
+            micBtn.classList.add('recording');
+            isListening = true;
+
+            // Show status message
+            const statusMessage = currentLanguage === 'cantonese' ?
+              '我聽緊，講啦...' :
+              currentLanguage === 'mandarin' ?
+                '我在听，请说...' :
+                currentLanguage === 'japanese' ?
+                  '聞いています。どうぞ話してください…' :
+                  'Listening...';
+            addStatusMessage(statusMessage);
+          } catch (err) {
+            console.error('Speech recognition error:', err);
+            const errorMessage = currentLanguage === 'cantonese' ?
+              '語音辨識啟動失敗，請重新整理頁面再試。' :
+              currentLanguage === 'mandarin' ?
+                '语音识别启动失败，请刷新页面后重试。' :
+                currentLanguage === 'japanese' ?
+                  '音声認識の開始に失敗しました。ページを更新してから再試行してください。' :
+                  'Failed to start speech recognition. Please refresh the page and try again.';
+            addStatusMessage(errorMessage);
+          }
+        } else if (config.sttMethod === 'minimax') {
+          try {
+            // Request microphone access
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+
+            const audioChunks = [];
+
+            mediaRecorder.ondataavailable = (event) => {
+              audioChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = async () => {
+              const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+              await processMinimaxSTT(audioBlob);
+              // Stop all tracks to release microphone
+              stream.getTracks().forEach(track => track.stop());
+            };
+
+            mediaRecorder.start();
+            micBtn.classList.add('recording');
+            isListening = true;
+
+            // Show status message
+            const statusMessage = currentLanguage === 'cantonese' ?
+              '我聽緊，講啦...' :
+              'Listening...';
+            addStatusMessage(statusMessage);
+
+            // Auto-stop after 10 seconds
+            setTimeout(() => {
+              if (isListening && mediaRecorder) {
+                mediaRecorder.stop();
+              }
+            }, 10000);
+
+          } catch (err) {
+            console.error('MediaRecorder error:', err);
+            const errorMessage = currentLanguage === 'cantonese' ?
+              '麥克風存取失敗，請檢查權限。' :
+              currentLanguage === 'mandarin' ?
+                '麦克风访问失败，请检查权限。' :
+                currentLanguage === 'japanese' ?
+                  'マイクへのアクセスに失敗しました。権限を確認してください。' :
+                  'Microphone access failed. Please check permissions.';
+            addStatusMessage(errorMessage);
+          }
+        }
+      }
+    }
+
+    // Speak message using Minimax TTS API
+    async function speakMessage(text) {
+      try {
+        // Check if API key is configured
+        if (!config.licenseKey) {
+          addStatusMessage(currentLanguage === 'cantonese' ?
+            '需要阿里雲API密鑰。請點擊⚙️設定密鑰。' :
+            currentLanguage === 'mandarin' ?
+              '需要阿里云 API 密钥。请点击⚙️进行设置。' :
+              currentLanguage === 'japanese' ?
+                'Alibaba Cloud の API キーが必要です。⚙️をクリックして設定してください。' :
+                'Alibaba Cloud API key required. Please click ⚙️ to configure.');
+          return;
+        }
+
+        // Show speaking status
+        const statusMessage = addStatusMessage(currentLanguage === 'cantonese' ?
+          '生成語音中...' :
+          currentLanguage === 'mandarin' ?
+            '正在生成语音…' :
+            currentLanguage === 'japanese' ?
+              '音声を生成しています…' :
+              'Generating speech...');
+
+        // Fetch audio from TTS API
+        const response = await fetch('/api/tts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-License-Key': config.licenseKey,
+            'X-Minimax-Group-Id': config.minimaxGroupId,
+            'X-Minimax-Api-Key': config.minimaxApiKey
+          },
+          body: JSON.stringify({
+            text: text,
+            language: currentLanguage,
+            minimaxVoiceId: config.minimaxVoiceId
+          })
+        });
+
+        // Remove status message
+        try {
+          chatContainer.removeChild(statusMessage);
+        } catch (err) {
+          // Message might already be removed
+        }
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          addStatusMessage(errorData.error || (currentLanguage === 'cantonese' ?
+            '語音生成失敗' :
+            currentLanguage === 'mandarin' ?
+              '语音生成失败' :
+              currentLanguage === 'japanese' ?
+                '音声の生成に失敗しました' :
+                'Speech generation failed'));
+          return;
+        }
+
+        // Create audio blob and play
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+
+        // Play the audio
+        audio.play();
+
+        // Clean up the URL after playing
+        audio.onended = () => {
+          URL.revokeObjectURL(audioUrl);
+        };
+
+      } catch (error) {
+        console.error('Error in speakMessage:', error);
+        addStatusMessage(currentLanguage === 'cantonese' ?
+          '語音播放錯誤' :
+          currentLanguage === 'mandarin' ?
+            '语音播放错误' :
+            currentLanguage === 'japanese' ?
+              '音声の再生中にエラーが発生しました' :
+              'Speech playback error');
+      }
+    }
+
+    // Send message to API and display response
+    async function sendMessage() {
+      const messageText = messageInput.value.trim();
+      if (!messageText) return;
+
+      // Add user message to chat
+      addMessage(messageText, true);
+      messageInput.value = '';
+
+      // Show typing indicator
+      const statusMessage = addStatusMessage(currentLanguage === 'cantonese' ?
+        '思考緊...' :
+        currentLanguage === 'mandarin' ?
+          '思考中…' :
+          currentLanguage === 'japanese' ?
+            '考え中…' :
+            'Thinking...');
+
+      try {
+        // Check if API key is configured
+        if (!config.licenseKey) {
+          throw new Error(currentLanguage === 'cantonese' ?
+            '需要阿里雲API密鑰。請點擊⚙️設定密鑰。' :
+            currentLanguage === 'mandarin' ?
+              '需要阿里云 API 密钥。请点击⚙️进行设置。' :
+              currentLanguage === 'japanese' ?
+                'Alibaba Cloud の API キーが必要です。⚙️をクリックして設定してください。' :
+                'Alibaba Cloud API key required. Please click ⚙️ to configure.');
+        }
+
+        // Prepare API request
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-License-Key': config.licenseKey
+          },
+          body: JSON.stringify({
+            message: messageText,
+            language: currentLanguage
+          })
+        });
+
+        // Check for errors
+        if (!response.ok) {
+          throw new Error(
+            currentLanguage === 'cantonese' ?
+              'API錯誤：' + response.status + ' ' + response.statusText :
+              currentLanguage === 'mandarin' ?
+                'API 错误：' + response.status + ' ' + response.statusText :
+                currentLanguage === 'japanese' ?
+                  'API エラー：' + response.status + ' ' + response.statusText :
+                  'API error: ' + response.status + ' ' + response.statusText
+          );
+        }
+
+        // Parse response
+        const data = await response.json();
+
+        // Remove typing indicator
+        try {
+          chatContainer.removeChild(statusMessage);
+        } catch (err) {
+          // Message might already be removed
+        }
+
+        // Add bot response to chat
+        if (data.response) {
+          addMessage(data.response, false);
+        } else {
+          throw new Error(currentLanguage === 'cantonese' ?
+            '收到空嘅回應，請再試。' :
+            currentLanguage === 'mandarin' ?
+              '收到空的响应，请重试。' :
+              currentLanguage === 'japanese' ?
+                '空の応答を受信しました。もう一度お試しください。' :
+                'Received empty response. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+
+        // Remove typing indicator
+        try {
+          chatContainer.removeChild(statusMessage);
+        } catch (err) {
+          // Message might already be removed
+        }
+
+        // Show error message
+        addStatusMessage(error.message || (currentLanguage === 'cantonese' ?
+          '發生錯誤，請再試。' :
+          currentLanguage === 'mandarin' ?
+            '发生错误，请重试。' :
+            currentLanguage === 'japanese' ?
+              'エラーが発生しました。もう一度お試しください。' :
+              'An error occurred. Please try again.'));
+      }
+    }
+
+    // Process MiniMax STT
+    async function processMinimaxSTT(audioBlob) {
+      try {
+        // Show processing status
+        const statusMessage = addStatusMessage(currentLanguage === 'cantonese' ?
+          '處理語音中...' :
+          currentLanguage === 'mandarin' ?
+            '正在处理语音…' :
+            currentLanguage === 'japanese' ?
+              '音声を処理しています…' :
+              'Processing speech...');
+
+        // Create FormData to send audio
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'recording.wav');
+        formData.append('language', currentLanguage);
+
+        // Send to STT API
+        const response = await fetch('/api/stt', {
+          method: 'POST',
+          headers: {
+            'X-Minimax-Group-Id': config.minimaxGroupId,
+            'X-Minimax-Api-Key': config.minimaxApiKey
+          },
+          body: formData
+        });
+
+        // Remove status message
+        try {
+          chatContainer.removeChild(statusMessage);
+        } catch (err) {
+          // Message might already be removed
+        }
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          addStatusMessage(errorData.error || (currentLanguage === 'cantonese' ?
+            '語音辨識失敗' :
+            currentLanguage === 'mandarin' ?
+              '语音识别失败' :
+              currentLanguage === 'japanese' ?
+                '音声認識に失敗しました' :
+                'Speech recognition failed'));
+          return;
+        }
+
+        // Parse response
+        const data = await response.json();
+        if (data.text) {
+          messageInput.value = data.text;
+          sendMessage();
+        } else {
+          addStatusMessage(currentLanguage === 'cantonese' ?
+            '未識別到語音' :
+            currentLanguage === 'mandarin' ?
+              '未识别到语音' :
+              currentLanguage === 'japanese' ?
+                '音声が認識されませんでした' :
+                'No speech recognized');
+        }
+      } catch (error) {
+        console.error('Error in processMinimaxSTT:', error);
+        addStatusMessage(currentLanguage === 'cantonese' ?
+          '語音處理錯誤' :
+          currentLanguage === 'mandarin' ?
+            '语音处理错误' :
+            currentLanguage === 'japanese' ?
+              '音声処理中にエラーが発生しました' :
+              'Speech processing error');
+      }
+    }
+
+    // Load voices when available (for Safari and other browsers that load voices asynchronously)
+    if ('speechSynthesis' in window) {
+      // Chrome loads voices synchronously
+      window.speechSynthesis.getVoices();
+
+      // Safari and some other browsers load voices asynchronously
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
+    }
+  </script>
+</body>
+</html>
