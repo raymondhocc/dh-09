@@ -284,7 +284,7 @@ async function handleRequest(req: Request): Promise<Response> {
         : defaultVoiceId;
 
       const ttsPayload = {
-        model: "speech-02-turbo",
+        model: "speech-2.6-turbo",
         text: text,
         stream: false,
         voice_setting: {
