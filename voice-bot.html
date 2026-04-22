@@ -83,6 +83,16 @@
       margin-left: 8px;
       padding: 0 10px;
     }
+    .download-btn {
+      background-color: transparent;
+      color: #333;
+      font-size: 20px;
+      margin-left: 4px;
+      padding: 0 10px;
+    }
+    .speak-btn:hover, .download-btn:hover {
+      background-color: #e0e0e0;
+    }
     .language-toggle {
       text-align: center;
       margin-bottom: 20px;
@@ -245,6 +255,7 @@
     <div class="message-container bot-container">
       <div class="message bot">你好！我係你嘅廣東話AI助手，有咩可以幫到你？</div>
       <button class="speak-btn" onclick="speakMessage(this.previousElementSibling.textContent)">🔊</button>
+      <button class="download-btn" onclick="downloadMessage(this.previousElementSibling.previousElementSibling.textContent)">⬇️</button>
     </div>
   </div>
 
@@ -555,13 +566,28 @@
       messageDiv.textContent = text;
       container.appendChild(messageDiv);
 
-      // Add speak button for bot messages if audio responses are enabled
+      // Add speak and download buttons for bot messages if audio responses are enabled
       if (!isUser && (config.responseType === 'audio' || config.responseType === 'both')) {
         const speakBtn = document.createElement('button');
         speakBtn.className = 'speak-btn';
         speakBtn.textContent = '🔊';
-        speakBtn.onclick = () => speakMessage(text);
+        speakBtn.title = currentLanguage === 'cantonese' ? '播放語音' :
+          currentLanguage === 'mandarin' ? '播放语音' :
+          currentLanguage === 'japanese' ? '音声を再生' :
+          'Play speech';
+        speakBtn.onclick = () => speakMessage(text, container);
         container.appendChild(speakBtn);
+
+        // Add download button
+        const downloadBtn = document.createElement('button');
+        downloadBtn.className = 'download-btn';
+        downloadBtn.textContent = '⬇️';
+        downloadBtn.title = currentLanguage === 'cantonese' ? '下載MP3' :
+          currentLanguage === 'mandarin' ? '下载MP3' :
+          currentLanguage === 'japanese' ? 'MP3をダウンロード' :
+          'Download MP3';
+        downloadBtn.onclick = () => downloadMessage(text, container);
+        container.appendChild(downloadBtn);
       }
 
       chatContainer.appendChild(container);
@@ -569,7 +595,7 @@
 
       // Auto-speak bot messages if audio responses are enabled
       if (!isUser && (config.responseType === 'audio' || config.responseType === 'both')) {
-        speakMessage(text);
+        speakMessage(text, null);
       }
 
       return messageDiv;
@@ -772,8 +798,12 @@
       }
     }
 
+    // Store current audio blob for download
+    let currentAudioBlob = null;
+    let currentAudioText = '';
+
     // Speak message using Minimax TTS API
-    async function speakMessage(text) {
+    async function speakMessage(text, messageContainer) {
       try {
         // Check if API key is configured
         if (!config.licenseKey) {
@@ -834,6 +864,11 @@
 
         // Create audio blob and play
         const audioBlob = await response.blob();
+
+        // Store audio blob for download
+        currentAudioBlob = audioBlob;
+        currentAudioText = text;
+
         const audioUrl = URL.createObjectURL(audioBlob);
         const audio = new Audio(audioUrl);
 
@@ -854,6 +889,106 @@
             currentLanguage === 'japanese' ?
               '音声の再生中にエラーが発生しました' :
               'Speech playback error');
+      }
+    }
+
+    // Download message as MP3 using Minimax TTS API
+    async function downloadMessage(text, messageContainer) {
+      try {
+        // Check if API key is configured
+        if (!config.licenseKey) {
+          addStatusMessage(currentLanguage === 'cantonese' ?
+            '需要NTTCA AI API密鑰。請點擊⚙️設定密鑰。' :
+            currentLanguage === 'mandarin' ?
+              '需要NTTCA AI API 密钥。请点击⚙️进行设置。' :
+              currentLanguage === 'japanese' ?
+                'NTTCA AI Cloud の API キーが必要です。⚙️をクリックして設定してください。' :
+                'NTTCA AI Cloud API key required. Please click ⚙️ to configure.');
+          return;
+        }
+
+        // Check if we already have this audio cached
+        if (currentAudioBlob && currentAudioText === text) {
+          // Download cached audio
+          const url = URL.createObjectURL(currentAudioBlob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'voice-message.mp3';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          return;
+        }
+
+        // Show downloading status
+        const statusMessage = addStatusMessage(currentLanguage === 'cantonese' ?
+          '下載語音中...' :
+          currentLanguage === 'mandarin' ?
+            '正在下载语音…' :
+            currentLanguage === 'japanese' ?
+              '音声をダウンロードしています…' :
+              'Downloading speech...');
+
+        // Fetch audio from TTS API
+        const response = await fetch('/api/tts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-License-Key': config.licenseKey,
+            'X-Minimax-Group-Id': config.minimaxGroupId,
+            'X-Minimax-Api-Key': config.minimaxApiKey
+          },
+          body: JSON.stringify({
+            text: text,
+            language: currentLanguage,
+            minimaxVoiceId: minimaxVoiceIdInput.value
+          })
+        });
+
+        // Remove status message
+        try {
+          chatContainer.removeChild(statusMessage);
+        } catch (err) {
+          // Message might already be removed
+        }
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          addStatusMessage(errorData.error || (currentLanguage === 'cantonese' ?
+            '語音生成失敗' :
+            currentLanguage === 'mandarin' ?
+              '语音生成失败' :
+              currentLanguage === 'japanese' ?
+                '音声の生成に失敗しました' :
+                'Speech generation failed'));
+          return;
+        }
+
+        // Get audio blob and store for future use
+        const audioBlob = await response.blob();
+        currentAudioBlob = audioBlob;
+        currentAudioText = text;
+
+        // Trigger download
+        const url = URL.createObjectURL(audioBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'voice-message.mp3';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+      } catch (error) {
+        console.error('Error in downloadMessage:', error);
+        addStatusMessage(currentLanguage === 'cantonese' ?
+          '下載錯誤' :
+          currentLanguage === 'mandarin' ?
+            '下载错误' :
+            currentLanguage === 'japanese' ?
+              'ダウンロード中にエラーが発生しました' :
+              'Download error');
       }
     }
 
